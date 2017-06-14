@@ -6,7 +6,7 @@
   - PHP >= 5.4
 - Contact :     [Message][]
 - GitHub :      [github.com/jemdev/file][]
-- Packagist :   [packagist.org/packages/jemdev/file][]
+- Packagist :   [packagist.org/packages/jemdev/fichier][]
 ****
 # Avertissement
 Attention, cette classe est livrée sans garantie. Développée rapidement pour répondre à un besoin interne à cause d'anomalies trop longue à corriger sur une librairie utilisée jusqu'alors, elle répond d'abord à mon besoin. Toute proposition d'amélioration sera prise en considération si elle conserve la simplicité d'utilisation.
