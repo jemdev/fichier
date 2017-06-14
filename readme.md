@@ -5,7 +5,7 @@
 - Pré-Requis: 
   - PHP >= 5.4
 - Contact :     [Message][]
-- GitHub :      [github.com/jemdev/file][]
+- GitHub :      [github.com/jemdev/fichier][]
 - Packagist :   [packagist.org/packages/jemdev/fichier][]
 ****
 # Avertissement
@@ -163,5 +163,5 @@ Ce système est très basique pour une utilisation quotidienne. N'hésitez pas à pr
 
 [CeCILL V2]: http://www.cecill.info/licences/Licence_CeCILL_V2-fr.html "Texte de la licence CeCILL V2"
 [Message]: http://jem-dev.com/a-propos/contacter-jemdev/ "Contacter Jean Molliné via son site"
-[github.com/jemdev/file]: https://github.com/jemdev/file "Page GitHub de cette classe"
+[github.com/jemdev/fichier]: https://github.com/jemdev/fichier "Page GitHub de cette classe"
 [packagist.org/packages/jemdev/fichier]: https://packagist.org/packages/jemdev/fichier "Page Packagist de cette classe"
