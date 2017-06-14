@@ -1,4 +1,4 @@
-#jemdev\fichier Téléchargement de fichiers
+# jemdev\fichier Téléchargement de fichiers
 
 - Auteur:       Jean Molliné
 - Licence:      [CeCILL V2][]
@@ -8,10 +8,10 @@
 - GitHub :      [github.com/jemdev/file][]
 - Packagist :   [packagist.org/packages/jemdev/file][]
 ****
-#Avertissement
+# Avertissement
 Attention, cette classe est livrée sans garantie. Développée rapidement pour répondre à un besoin interne à cause d'anomalies trop longue à corriger sur une librairie utilisée jusqu'alors, elle répond d'abord à mon besoin. Toute proposition d'amélioration sera prise en considération si elle conserve la simplicité d'utilisation.
 ****
-#Installation
+# Installation
 Avec Composer, ajouter ce qui suit dans la partie require de votre composer.json:
 
     ```
@@ -20,14 +20,14 @@ Avec Composer, ajouter ce qui suit dans la partie require de votre composer.json
     }  
     ```
 ****
-#Présentation
+# Présentation
 Cette classe permet de gérer l'envoi de fichiers par l'utilisation d'un formulaire. Il peut s'agir de fichiers textes, bureautique ou des images.
 
 Des méthodes additionnelles permettent de retailler des images voire de créer des miniatures en réduisant proportionnellement les dimensions de l'image originale.
-#Utilisation
+# Utilisation
 Chaque fichier devra être traité individuellement au cas où certains paramètres seraient propres à chaque fichier, par exemple leur destination.
 À partir d'une instance de jemdev\fichier\upload, on définit d'abord les paramètres si nécessaire. Notez que les méthodes de réglage des paramètres peuvent être chainées.
-###Utilisation de base
+### Utilisation de base
 Sans paramétrage particulier, l'utilisation est on ne peut plus simple :
 
     ```
@@ -121,9 +121,9 @@ On peut modifier ce mode avant l'enregistrement. Par exemple si on veut que le f
     //... la suite du code de traitement ne change pas.
     ```
 
-#Manipulation d'images
+# Manipulation d'images
 Les fichiers envoyés peuvent être des images et peuvent, si nécessaire, être redimensionnés. On peut également générer une miniature indépendamment du fichier original dans un répertoire distinct.
-###Note :
+### Note :
 Les méthodes de traitement d'images ne seront pas accessible lors d'envoi de fichiers multiples.
 
 On peut au préalable indiquer les dimensions maximales de l'image normale ainsi que la hauteur maximale de la vignette. Le cas échéant, les retailles de l'image originale seront proportionnelles.
@@ -158,7 +158,7 @@ Pour un fichier simple, on peut ainsi créer une miniature en indiquant le chemin
     }
     ```
 
-#En résumé
+# En résumé
 Ce système est très basique pour une utilisation quotidienne. N'hésitez pas à proposer des améliorations si toutefois elles ne compliquent pas son utilisation.
 
 [CeCILL V2]: http://www.cecill.info/licences/Licence_CeCILL_V2-fr.html "Texte de la licence CeCILL V2"
