@@ -16,7 +16,7 @@ Avec Composer, ajouter ce qui suit dans la partie require de votre composer.json
 
 ```json
 {  
-    "jemdev/file": "dev-master"  
+    "jemdev/file": "master"  
 }  
 ```
 ****
