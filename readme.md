@@ -160,6 +160,9 @@ else
 
 # En résumé
 Ce système est très basique pour une utilisation quotidienne. N'hésitez pas à proposer des améliorations si toutefois elles ne compliquent pas son utilisation.
+****
+## Note for english speaking users
+My english level is not sufficient to write a good documentation in english. But if you're natively english speaking and understanding well french, please, feel free to write a translation. Enjoy this library.
 
 [CeCILL V2]: http://www.cecill.info/licences/Licence_CeCILL_V2-fr.html "Texte de la licence CeCILL V2"
 [Message]: http://jem-dev.com/a-propos/contacter-jemdev/ "Contacter Jean Molliné via son site"
