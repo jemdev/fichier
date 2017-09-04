@@ -233,6 +233,10 @@ class upload
      */
     public function enregistrerFichier($infosFichier, $cible)
     {
+        if(false == $infosFichier)
+        {
+            return false;
+        }
         if(is_array($infosFichier['name']))
         {
             $this->_bMultiple = true;
@@ -376,9 +380,14 @@ class upload
             }
             if(false !== $bMini)
             {
-                $this->_retaillerImage($imgSrc, $this->_rep_originale, $this->_nomImage);
+                $retaille = $this->_retaillerImage($imgSrc, $this->_rep_originale, $this->_nomImage);
             }
             $resultat = true;
+        }
+        else
+        {
+            $this->_aLog[] = sprintf($this->_aMessages['err_noimg']);
+            $resultat = false;
         }
         return $resultat;
     }
