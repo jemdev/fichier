@@ -4,7 +4,7 @@
     "type"       : "library",
     "keywords"   : ["library", "files", "upload", "namespace", "images", "thumbnail"],
     "homepage"   : "http://jem-dev.com/",
-    "license"    : "CeCILL-2.1",
+    "license"    : "CECILL-2.1",
     "authors"    : [
         {
             "name" : "Jean Molliné",
