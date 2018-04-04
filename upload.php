@@ -544,8 +544,6 @@ class upload
     {
         $tm = array();
         $mimetypes = realpath(__DIR__ . DIRECTORY_SEPARATOR .'inc'. DIRECTORY_SEPARATOR .'mime.types');
-        $f = fopen($mimetypes);
-        $s = filesize($f);
         $sListe = '';
         if(false != ($f = fopen($mimetypes, 'r')))
         {
