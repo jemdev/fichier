@@ -543,10 +543,32 @@ class upload
     private function _generateUpToDateMimeArray($aTypesOk = null)
     {
         $tm = array();
-        $sListe = file_get_contents(self::APACHE_MIME_TYPES_URL);
-        if(false == $sListe)
+        $mimetypes = realpath(__DIR__ . DIRECTORY_SEPARATOR .'inc'. DIRECTORY_SEPARATOR .'mime.types');
+        $f = fopen($mimetypes);
+        $s = filesize($f);
+        $sListe = '';
+        if(false != ($f = fopen($mimetypes, 'r')))
         {
-            $sListe = file_get_contents(realpath(__DIR__ . DIRECTORY_SEPARATOR .'inc'. DIRECTORY_SEPARATOR .'mime.types'));
+            $s = filesize($mimetypes);
+            while(!feof($f))
+            {
+                $sListe .= fread($f, $s);
+            }
+            fclose($f);
+            $aTypes = explode("\n", $sListe);
+            foreach($aTypes as $x)
+            {
+                if(isset($x[0]) && $x[0] !== '#' && preg_match_all('#([^\s]+)#', $x, $out) && isset($out[1]) && ($c = count($out[1])) > 1)
+                {
+                    for($i = 1; $i < $c; $i++)
+                    {
+                        if(is_null($aTypesOk) || in_array($out[1][$i], $aTypesOk))
+                        {
+                            $tm[$out[1][$i]] = $out[1][0];
+                        }
+                    }
+                }
+            }
         }
         $aTypes = explode("\n", $sListe);
         foreach($aTypes as $x)
