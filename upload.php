@@ -506,6 +506,16 @@ class upload
             $this->_bTypeImage = true;
         }
         $retour = (in_array($type, $this->_aMimeTypesOk)) ? true : false;
+        if(true !== $retour)
+        {
+            $af = explode('.', $this->_aInfosFichiers['name']);
+            $ne = count($af);
+            $ne--;
+            if(array_key_exists($af[$ne], $this->_aMimeTypesOk) || in_array($this->_aInfosFichiers['type'], $this->_aMimeTypesOk))
+            {
+                $retour = true;
+            }
+        }
         return($retour);
     }
 
