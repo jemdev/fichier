@@ -3,7 +3,6 @@ namespace jemdev\fichier;
 
 /**
  * Classe de gestion de téléchargement de fichiers.
- *
  * Traite les fichiers envoyés par le biais de formulaires et des informations incluses
  * dans la super-globale $_FILE.
  * Copie les fichiers dans le répertoire cible indiqué et crée si nécessaire les
@@ -12,152 +11,251 @@ namespace jemdev\fichier;
  * @author jemdev <jmolline@jem-dev.com>
  * @version 1.0-dev
  * @license CeCILL 2.1 @see http://www.cecill.info/licences/Licence_CeCILL_V2.1-fr.html
- * @since       PHP 5.4.x
+ * @since PHP 5.4.x
  * @todo Traductions dans d'autres langues que le français.
  */
 class upload
 {
     const APACHE_MIME_TYPES_URL = 'http://svn.apache.org/repos/asf/httpd/httpd/trunk/docs/conf/mime.types';
-    private $_cheminLangues;
-    private $_langue            = 'fr_FR';
-    private $_aMessages         = array();
+
     /**
-     * Droits d'accès au fichier
-     * @var int
-     */
-    private $_file_mode         = 0644;
-    /**
-     * Droits d'accès au répertoire
-     * @var int
-     */
-    private $_dir_mode          = 0755;
-    private $_aInfosFichiers    = array();
-    /**
-     * Liste des extensions de fichier acceptées au téléchargement.
+     * Chemin vers les fichiers de la langue sélectionnée lors de l'appel du constructeur
      *
-     * Cette liste pourra être différente et modifiée (@see upload::setExtensionsOk() )
+     * @var string
+     */
+    private $_cheminLangues;
+
+    /**
+     * Langue par défaut utilisée pour les messages, principalement les messages d'erreur
+     *
+     * @var string
+     */
+    private $_langue = 'fr_FR';
+
+    /**
+     * Enregistrement des messages d'erreurs rencontrés lors du traitement.
+     *
      * @var array
      */
-    private $_aExtensionsOk     = array('7z', 'csv', 'doc', 'docx', 'gif', 'jpeg', 'jpg', 'odc', 'odb', 'odf', 'odg', 'odi', 'odp', 'ods', 'odt', 'otg', 'otp', 'ots', 'ott', 'pdf', 'png', 'ppt', 'pptx', 'rar', 'rtf', 'txt', 'xls', 'xlsx', 'xml', 'zip');
+    private $_aMessages = array();
+
+    /**
+     * Droits d'accès au fichier
+     *
+     * @var int
+     */
+    private $_file_mode = 0644;
+
+    /**
+     * Droits d'accès au répertoire
+     *
+     * @var int
+     */
+    private $_dir_mode = 0755;
+
+    /**
+     * Informations sur les fichiers.
+     * Au départ, il s'agit des informations reçus à partir de la super-globale $_FILE.
+     *
+     * @var array
+     */
+    private $_aInfosFichiers = array();
+
+    /**
+     * Liste des extensions de fichier acceptées au téléchargement.
+     * Cette liste pourra être différente et modifiée (@see upload::setExtensionsOk() )
+     *
+     * @var array
+     */
+    private $_aExtensionsOk = array(
+        '7z',
+        'csv',
+        'doc',
+        'docx',
+        'gif',
+        'jpeg',
+        'jpg',
+        'odc',
+        'odb',
+        'odf',
+        'odg',
+        'odi',
+        'odp',
+        'ods',
+        'odt',
+        'otg',
+        'otp',
+        'ots',
+        'ott',
+        'pdf',
+        'png',
+        'ppt',
+        'pptx',
+        'rar',
+        'rtf',
+        'txt',
+        'xls',
+        'xlsx',
+        'xml',
+        'zip'
+    );
+
     /**
      * Liste des types MIME de fichier acceptés au téléchargement.
-     *
      * Une liste pré-établie comporte des fichiers image, des fichiers textes et des formats
      * bureautiques divers. Ces types serviront à valider les fichiers téléchargés non sur
      * leur extension qui peut êrte manipulée manuellement par par le type-mime rédini dans
      * les en-tête du fichier lui-même. Si l'extension a été modifiée mais que le type mime
      * fait partie de la liste définie, alors il sera considéré comme acceptable, autrement
      * il sera rejeté.
+     * Note : les types rarx et msox sont des types personnalisés non répertoriés
+     * dans la liste proposée par le fichier Apache (@see upload::APACHE_MIME_TYPES_URL)
      *
-     * Note :   les types rarx et msox sont des types personnalisés non répertoriés
-     *          dans la liste proposée par le fichier Apache (@see upload::APACHE_MIME_TYPES_URL)
      * @var array
      */
-    private $_aMimeTypesOk      = array(
-        '7z'    => 'application/x-7z-compressed',
-        'csv'   => 'text/csv',
-        'doc'   => 'application/msword',
-        'docx'  => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'gif'   => 'image/gif',
-        'jpeg'  => 'image/jpeg',
-        'jpg'   => 'image/jpeg',
-        'odc'   => 'application/vnd.oasis.opendocument.chart',
-        'odb'   => 'application/vnd.oasis.opendocument.database',
-        'odf'   => 'application/vnd.oasis.opendocument.formula',
-        'odg'   => 'application/vnd.oasis.opendocument.graphics',
-        'odi'   => 'application/vnd.oasis.opendocument.image',
-        'odp'   => 'application/vnd.oasis.opendocument.presentation',
-        'ods'   => 'application/vnd.oasis.opendocument.spreadsheet',
-        'odt'   => 'application/vnd.oasis.opendocument.text',
-        'otg'   => 'application/vnd.oasis.opendocument.graphics-template',
-        'otp'   => 'application/vnd.oasis.opendocument.presentation-template',
-        'ots'   => 'application/vnd.oasis.opendocument.spreadsheet-template',
-        'ott'   => 'application/vnd.oasis.opendocument.text-template',
-        'pdf'   => 'application/pdf',
-        'png'   => 'image/png',
-        'ppt'   => 'application/vnd.ms-powerpoint',
-        'pptx'  => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-        'rar'   => 'application/x-rar-compressed',
-        'rtf'   => 'application/rtf',
-        'txt'   => 'text/plain',
-        'xls'   => 'application/vnd.ms-excel',
-        'xlsx'  => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'xml'   => 'application/xml',
-        'zip'   => 'application/zip',
-        'rarx'  => 'application/x-rar',
-        'msox'  => 'application/vnd.ms-office'
+    private $_aMimeTypesOk = array(
+        '7z' => 'application/x-7z-compressed',
+        'csv' => 'text/csv',
+        'doc' => 'application/msword',
+        'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'gif' => 'image/gif',
+        'jpeg' => 'image/jpeg',
+        'jpg' => 'image/jpeg',
+        'odc' => 'application/vnd.oasis.opendocument.chart',
+        'odb' => 'application/vnd.oasis.opendocument.database',
+        'odf' => 'application/vnd.oasis.opendocument.formula',
+        'odg' => 'application/vnd.oasis.opendocument.graphics',
+        'odi' => 'application/vnd.oasis.opendocument.image',
+        'odp' => 'application/vnd.oasis.opendocument.presentation',
+        'ods' => 'application/vnd.oasis.opendocument.spreadsheet',
+        'odt' => 'application/vnd.oasis.opendocument.text',
+        'otg' => 'application/vnd.oasis.opendocument.graphics-template',
+        'otp' => 'application/vnd.oasis.opendocument.presentation-template',
+        'ots' => 'application/vnd.oasis.opendocument.spreadsheet-template',
+        'ott' => 'application/vnd.oasis.opendocument.text-template',
+        'pdf' => 'application/pdf',
+        'png' => 'image/png',
+        'ppt' => 'application/vnd.ms-powerpoint',
+        'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'rar' => 'application/x-rar-compressed',
+        'rtf' => 'application/rtf',
+        'txt' => 'text/plain',
+        'xls' => 'application/vnd.ms-excel',
+        'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'xml' => 'application/xml',
+        'zip' => 'application/zip',
+        'rarx' => 'application/x-rar',
+        'msox' => 'application/vnd.ms-office'
     );
+
+    /**
+     * Taille maximum autorisée pour l'envoi d'un fichier
+     * @var integer
+     */
     private $_max_file_size;
+
+    /**
+     * Chemin vers le répertoire de destination du fichier reçu
+     * @var string
+     */
     private $_repertoireDestination;
-    private $_bTypeImage        = false;
-    private $_bMultiple         = false;
+
+    /**
+     * Indique si le fichier est ou non une image sur laquelle on pourra donc apliquer ou
+     * non des traitements de transformation.
+     *
+     * @var bool
+     */
+    private $_bTypeImage = false;
+
+    /**
+     * Indique s'il y a ou non plusieurs fichiers successifs à traiter dans un même envoi.
+     *
+     * @var bool
+     */
+    private $_bMultiple = false;
+
     /**
      * Chemin absolu vers le fichier source (images seulement)
-     * @var    String
+     *
+     * @var String
      */
-    private $_imgSrc     = "";
+    private $_imgSrc = "";
+
     /**
-     * @var    String
-     * @desc   Nom du fichier source
+     * Nom du fichier source
+     *
+     * @var String
      */
-    private $_nomImage   = "";
+    private $_nomImage = "";
+
     /**
-     * @var    String
-     * @desc   Répertoire source de l'image originale s'il s'agit d'un fichier image
+     * Répertoire source de l'image originale s'il s'agit d'un fichier image
+     *
+     * @var String
      */
     private $_rep_originale;
+
     /**
-     * @var    String
-     * @desc   Répertoire de l'image miniature s'il s'agit d'un fichier image
+     * Répertoire de l'image miniature s'il s'agit d'un fichier image
+     *
+     * @var String
      */
     private $_rep_vignette;
+
     /**
-     * @var    Integer
-     * @desc   Hauteur maximum d'une image en pixels
+     * Hauteur maximum d'une image en pixels
+     *
+     * @var Integer
      */
-    private $_hMaxi      = 300;
+    private $_hMaxi = 300;
+
     /**
-     * @var    Integer
-     * @desc   Largeur maximum d'une image en pixels
+     * Largeur maximum d'une image en pixels
+     *
+     * @var Integer
      */
-    private $_lMaxi      = 400;
+    private $_lMaxi = 400;
+
     /**
-     * @var    Integer
-     * @desc   Hauteur maximum d'une image miniature en pixels
-1     */
-    private $_hMaxi_v    = 120;
+     * Hauteur maximum d'une image miniature en pixels
+     *
+     * @var Integer 1
+     */
+    private $_hMaxi_v = 120;
 
     /**
      * Active ou non le mode débogage afin d'enregistrer ou non les événements.
+     *
      * @var bool
      */
-    private $_bDebug            = false;
+    private $_bDebug = false;
+
     /**
      * Informations sur le déroulement du processus de traitement
+     *
      * @var array
      */
-    private $_aLog              = array();
+    private $_aLog = array();
 
     /**
      * Constructeur.
      * Définir l'instance et ses propriétés de base.
      *
-     * @param string $lang          Langue des messages d'erreur.
+     * @param   string  $lang   Langue des messages d'erreur, par défaut en français.
      */
     public function __construct($lang = 'fr_FR')
     {
         $this->_max_file_size = ini_get('upload_max_filesize');
         $this->_setTypesMimeOk();
-        $this->_cheminLangues           = realpath(__DIR__). DIRECTORY_SEPARATOR .'lang'. DIRECTORY_SEPARATOR;
+        $this->_cheminLangues = realpath(__DIR__) . DIRECTORY_SEPARATOR . 'lang' . DIRECTORY_SEPARATOR;
         $this->_setLangue($lang);
     }
 
     /**
      * Définir la liste des extensions de fichiers autorisés au téléchargement.
-     *
      * Attention :
      * Cette méthode devra être utilisée AVANT l'appel de la méthode upload::enregistrerFichier
-     *
      * À noter que les fichiers seront testés selon leur type et non selon cette extension
      * afin d'éviter toute tentative d'envoi de fichiers dont l'extension aurait été modifiée
      * manuellement.
@@ -167,43 +265,45 @@ class upload
     public function setExtensionsOk($aExtensions)
     {
         $this->_aExtensionsOk = $aExtensions;
-        return($this);
+        return ($this);
     }
 
     /**
-     * Définir les droits d'accès aux répertoires qui devront éventuellement être
+     * Définir les droits d'accès applicables aux répertoires qui devront éventuellement être
      * créés (chmod)
+     *
      * @param number $mode
      */
     public function setDroitAccesRepertoire($mode = 0755)
     {
         $this->_dir_mode = $mode;
-        return($this);
+        return ($this);
     }
 
     /**
-     * Définir les droits d'accès aux fichiers qui seront enregistrés (chmod)
+     * Définir les droits d'accès applicables aux fichiers qui seront enregistrés (chmod)
+     *
      * @param number $mode
      */
     public function setDroitAccesFichier($mode = 0644)
     {
         $this->_file_mode = $mode;
-        return($this);
+        return ($this);
     }
 
     /**
      * Définir les paramètres par défaut pour le traitement d'images.
      *
-     * @param  Int       $hMaxi_a   paramètre de hauteur maximum de la grande image qui devra être générée
-     * @param  Int       $lMaxi_a   paramètre de largeur maximum de la grande image qui devra être générée
-     * @param  Int       $hMaxi_v   paramètre de hauteur maximum de la miniature qui devra être générée
+     * @param Int   $hMaxi_a    paramètre de hauteur maximum de la grande image qui devra être générée
+     * @param Int   $lMaxi_a    paramètre de largeur maximum de la grande image qui devra être générée
+     * @param Int   $hMaxi_v    paramètre de hauteur maximum de la miniature qui devra être générée
      */
     public function setImageInfo($hMaxi_a = 300, $lMaxi_a = 400, $hMaxi_v = 120)
     {
-        $this->_hMaxi           = $hMaxi_a;
-        $this->_lMaxi           = $lMaxi_a;
-        $this->_hMaxi_v         = $hMaxi_v;
-        return($this);
+        $this->_hMaxi = $hMaxi_a;
+        $this->_lMaxi = $lMaxi_a;
+        $this->_hMaxi_v = $hMaxi_v;
+        return ($this);
     }
 
     /**
@@ -211,25 +311,23 @@ class upload
      */
     public function getErreurs()
     {
-        return($this->_aLog);
+        return ($this->_aLog);
     }
 
     /**
      * Enregistrer un fichier téléchargé dans son répertoire de destination.
-     *
      * Le paramètre $infosFichier correspond au confenu du tableau $_FILE[nom-du-champ]
      * avec donc les index :
-     * - name     => nom du fichier
-     * - type     => type mime
-     * - tmp_name => chemin où est temporairement stocké le fichier envoyé
-     * - error    => Numéro de l'erreur le cas échéant
-     * - size     => taille du fichier en octets
-     *
+     * - name       => nom du fichier
+     * - type       => type mime
+     * - tmp_name   => chemin où est temporairement stocké le fichier envoyé
+     * - error      => Numéro de l'erreur le cas échéant
+     * - size       => taille du fichier en octets
      * Si les informations reçues contiennent plusieurs fichiers, la fonction traitera
      * récursivement chaque fichier.
      *
-     * @param array  $infosFichier  Informations de téléchargement sur le fichier
-     * @param string $cible         Répertoire de destination du fichier.
+     * @param array     $infosFichier   Informations de téléchargement sur le fichier
+     * @param string    $cible          Répertoire de destination du fichier.
      */
     public function enregistrerFichier($infosFichier, $cible)
     {
@@ -251,39 +349,43 @@ class upload
                 );
                 $this->enregistrerFichier($infos, $cible);
             }
-        }
-        else
+        }else
         {
-            $this->_aInfosFichiers          = $infosFichier;
-            $this->_repertoireDestination   = $cible;
+            $this->_aInfosFichiers = $infosFichier;
+            $this->_repertoireDestination = $cible;
             if($this->_aInfosFichiers['error'] != 0)
             {
-                $info = ($this->_aInfosFichiers['error'] == 1) ? $this->_max_file_size : null;
-                $info = ($this->_aInfosFichiers['error'] == 2) ? $_POST['MAX_FILE_SIZE'] : null;
-                $this->_aLog[] = sprintf($this->_aMessages['err_upload_'. $this->_aInfosFichiers['error']], $info);
-                return(false);
+                $info = ($this->_aInfosFichiers['error'] == 1)
+                    ? $this->_max_file_size
+                    : (
+                        ($this->_aInfosFichiers['error'] == 2)
+                            ? $_POST['MAX_FILE_SIZE']
+                            : null
+                    );
+                $this->_aLog[] = sprintf($this->_aMessages['err_upload_' . $this->_aInfosFichiers['error']], $info);
+                return (false);
             }
             $valide = $this->_validerTypeFichier();
             if(false === $valide)
             {
                 $this->_aLog[] = sprintf($this->_aMessages['err_type_ko']);
-                return(false);
+                return (false);
             }
             if(false === $this->_creerRepertoire($this->_repertoireDestination))
             {
-                return(false);
+                return (false);
             }
             $fichier = $this->_repertoireDestination . basename($this->_aInfosFichiers['name']);
             if(true == $this->_bTypeImage)
             {
-                $this->_imgSrc          = $fichier;
-                $this->_nomImage        = $this->_aInfosFichiers['name'];
-                $this->_rep_originale   = $cible;
+                $this->_imgSrc = $fichier;
+                $this->_nomImage = $this->_aInfosFichiers['name'];
+                $this->_rep_originale = $cible;
             }
             if(false === move_uploaded_file($this->_aInfosFichiers['tmp_name'], $fichier))
             {
                 $this->_aLog[] = sprintf($this->_aMessages['err_move'], $this->_repertoireDestination);
-                return(false);
+                return (false);
             }
         }
         return true;
@@ -291,6 +393,7 @@ class upload
 
     /**
      * Déplacer un fichier vers un autre répertoire.
+     *
      * @param string    $fichier                Chemin absolu vers le fichier source
      * @param string    $repertoireDestination  Chemin absolu vers le répertoire de destination.
      * @return boolean
@@ -301,65 +404,64 @@ class upload
         {
             if(false === $this->_creerRepertoire($repertoireDestination))
             {
-                return(false);
+                return (false);
             }
             $nomFichier = basename($fichier);
             $deplacement = rename($fichier, $repertoireDestination . DIRECTORY_SEPARATOR . $nomFichier);
             if(true !== $deplacement)
             {
                 $this->_aLog[] = sprintf($this->_aMessages['err_move'], $repertoireDestination);
-                return(false);
+                return (false);
             }
         }
         else
         {
             $this->_aLog[] = sprintf($this->_aMessages['err_nofile'], $fichier);
-            return(false);
+            return (false);
         }
-        return(true);
+        return (true);
     }
 
     /**
      * Déterminer le format de l'image originale pour créer une miniature pour la galerie
      * et au besoin retailler l'image originale si elle dépasse les dimensions maximum définies.
      *
-     * @param   String  $nom_image              Nom du fichier image original
-     * @param   boolean $bMiniature             Définit s'il faut créer une miniature de l'image originale
-     * @param   string  $repertoireMiniature    Chemin absolu vers le répertoire de stockage des miniatures
-     * @return  Boolean                         Vrai en cas de succès, Faux dans le cas contraire.
+     * @param String    $nom_image              Nom du fichier image original
+     * @param boolean   $bMiniature             Définit s'il faut créer une miniature de l'image originale
+     * @param string    $repertoireMiniature    Chemin absolu vers le répertoire de stockage des miniatures
+     * @return Boolean Vrai en cas de succès, Faux dans le cas contraire.
      */
     public function creerVignette($bMiniature = false, $repertoireMiniature = null)
     {
         if(true === $this->_bMultiple)
         {
             $this->_aLog[] = sprintf($this->_aMessages['err_imgmult']);
-            return(false);
-        }
-        elseif(true !== $this->_bTypeImage)
+            return (false);
+        }elseif(true !== $this->_bTypeImage)
         {
             $this->_aLog[] = sprintf($this->_aMessages['']);
-            return(false);
+            return (false);
         }
         $this->_rep_vignette = $repertoireMiniature;
         /* Création de la vignette pour affichage par exemple de plusieurs miniatures dans une galerie */
-        $resultat   = false;
-        $info       = pathinfo($this->_imgSrc);
-        $extension  = strtolower($info['extension']);
+        $resultat = false;
+        $info = pathinfo($this->_imgSrc);
+        $extension = strtolower($info['extension']);
         switch($extension)
         {
-            case "jpg":
-            case "jpeg":
-            case "pjpg":
+            case "jpg" :
+            case "jpeg" :
+            case "pjpg" :
                 $imgSrc = imagecreatefromjpeg($this->_imgSrc);
                 break;
-            case "png":
-            case "x-png":
+            case "png" :
+            case "x-png" :
                 $imgSrc = imagecreatefrompng($this->_imgSrc);
                 break;
-            case "gif":
+            case "gif" :
                 $imgSrc = imagecreatefromgif($this->_imgSrc);
                 break;
-            default:
+            default :
                 $imgSrc = null;
         }
         if(isset($imgSrc))
@@ -374,7 +476,7 @@ class upload
                 $dir_mini = $this->_creerRepertoire($repertoireMiniature);
                 if(false === $dir_mini)
                 {
-                    return(false);
+                    return (false);
                 }
                 $bMini = $this->_creerMiniature($imgSrc, $this->_nomImage);
             }
@@ -394,13 +496,12 @@ class upload
 
     /**
      * Méthode _miniature().
-     *
      * Cette fonction ré-échantillone l'image originale et définit les dimension d'une miniature
      * proportionnée par rapport à une hauteur fixe.
      *
-     * @param   String $imgSrc      Chemin absolu vers l'image source de taille originale
-     * @param   String $nomImage    Nom du fichier image.
-     * @return  string|boolean      Si la création de la miniature s'est correctement déroulée,
+     * @param String    $imgSrc     Chemin absolu vers l'image source de taille originale
+     * @param String    $nomImage   Nom du fichier image.
+     * @return string|boolean       Si la création de la miniature s'est correctement déroulée,
      *                              la fonction retourne le nom de l'image, FALSE dans le cas
      *                              contraire.
      */
@@ -433,24 +534,24 @@ class upload
      * Cette méthode ré-échantillone l'image originale et définit des dimensions acceptables pour
      * une page web par rapport à une hauteur et une largeur maxi.
      *
-     * @param   String  $imgSrc     Chemin absolu vers l'image source de taille originale
-     * @param   String  $rep_Dest   Chemin absolu vers le répertoire de destination de l'image finale.
-     * @param   String  $nomImage   Nom du fichier image.
-     * @return  Boolean             Si la création de la photo s'est correctement déroulée, la fonction retourne TRUE, FALSE dans
-     *                              le cas contraire.
+     * @param String    $imgSrc     Chemin absolu vers l'image source de taille originale
+     * @param String    $rep_Dest   Chemin absolu vers le répertoire de destination de l'image finale.
+     * @param String    $nomImage   Nom du fichier image.
+     * @return Boolean              Si la création de la photo s'est correctement déroulée, la fonction
+     *                              retourne TRUE, FALSE dans le cas contraire.
      */
     private function _retaillerImage($imgSrc, $rep_Dest, $nomImage)
     {
         /* Quelle taille fait notre image ? */
-        $fichier    = getimagesize($this->_imgSrc);
-        $largeurSrc = $fichier[0];
-        $hauteurSrc = $fichier[1];
-        $dimensions = $this->_calculRetaille($largeurSrc, $hauteurSrc);
+        $fichier        = getimagesize($this->_imgSrc);
+        $largeurSrc     = $fichier[0];
+        $hauteurSrc     = $fichier[1];
+        $dimensions     = $this->_calculRetaille($largeurSrc, $hauteurSrc);
         /* On arrondit les chiffres en entiers */
-        $largeur = ceil($dimensions[0]);
-        $hauteur = ceil($dimensions[1]);
+        $largeur        = ceil($dimensions[0]);
+        $hauteur        = ceil($dimensions[1]);
         /* Création de l'image */
-        $imagenormale = imagecreatetruecolor($largeur, $hauteur);
+        $imagenormale   = imagecreatetruecolor($largeur, $hauteur);
         imagealphablending($imagenormale, false);
         imagesavealpha($imagenormale, true);
         /* On ré-échantillone l'image originale pour en créer une copie aux nouvelles dimensions */
@@ -463,11 +564,12 @@ class upload
 
     /**
      * Méthode de réduction proportionnelle des dimensions de l'image originale à
-     * des dimensions acceptable par exemple pour un format d'écran 800/600
+     * des dimensions, acceptables par exemple pour un format d'écran 800/600 ou
+     * encore pour un écran mobile
      *
-     * @param   Int     $lSrc Largeur de l'image originale
-     * @param   Int     $hSrc Hauteur de l'image originale
-     * @return  Array
+     * @param Int   $lSrc   Largeur de l'image originale
+     * @param Int   $hSrc   Hauteur de l'image originale
+     * @return Array
      */
     private function _calculRetaille($lSrc, $hSrc)
     {
@@ -475,31 +577,36 @@ class upload
         $coef_l = 1;
         if($lSrc > $this->_lMaxi)
         {
-            $largeur  = $this->_lMaxi;
-            $coef_l   = $lSrc / $this->_lMaxi;
-            $hauteur  = $hSrc / $coef_l;
+            $largeur    = $this->_lMaxi;
+            $coef_l     = $lSrc / $this->_lMaxi;
+            $hauteur    = $hSrc / $coef_l;
         }
         elseif($hSrc > $this->_hMaxi)
         {
-            $hauteur  = $this->_hMaxi;
-            $coef_h   = $hSrc / $this->_hMaxi;
-            $largeur  = $lSrc / $coef_h;
+            $hauteur    = $this->_hMaxi;
+            $coef_h     = $hSrc / $this->_hMaxi;
+            $largeur    = $lSrc / $coef_h;
         }
         else
         {
-            $largeur = $lSrc;
-            $hauteur = $hSrc;
+            $largeur    = $lSrc;
+            $hauteur    = $hSrc;
         }
         $dimension = array(
-            0 => $largeur,
-            1 => $hauteur
+                        0 => $largeur,
+                        1 => $hauteur
         );
         return $dimension;
     }
 
+    /**
+     * Vérifie que le type de fichier reçu est bien autorisé.
+     *
+     * @return boolean
+     */
     private function _validerTypeFichier()
     {
-        $type = mime_content_type($this->_aInfosFichiers['tmp_name']);
+        $type   = mime_content_type($this->_aInfosFichiers['tmp_name']);
         $masque = '#^image/#';
         if(preg_match($masque, $type))
         {
@@ -516,9 +623,15 @@ class upload
                 $retour = true;
             }
         }
-        return($retour);
+        return ($retour);
     }
 
+    /**
+     * Création d'un répertoire de destination s'il n'existe pas.
+     *
+     * @param  String   $cheminRepertoire   Chemin absolu vers le répertoire de destination à créer.
+     * @return boolean
+     */
     private function _creerRepertoire($cheminRepertoire)
     {
         if(!file_exists($cheminRepertoire) || !is_dir($cheminRepertoire))
@@ -527,19 +640,28 @@ class upload
             if(false === $creerRepertoire)
             {
                 $this->_aLog[] = sprintf($this->_aMessages['err_mkdir'], $cheminRepertoire);
-                return(false);
+                return (false);
             }
         }
-        return(true);
+        return (true);
     }
 
+    /**
+     * Définit la langue utilisée pour les messages d'erreur à afficher le cas échéant.
+     * Si le fichier de traduction dans la langue indiquée existe, il esr utilisé, sinon, le français sera utilisé.
+     *
+     * @param   string  $lang   Par défaut fr_FR
+     */
     private function _setLangue($lang = 'fr_FR')
     {
-        $fichierLangue = (file_exists($this->_cheminLangues . $lang .'.php')) ? $this->_cheminLangues . $lang .'.php' : $this->_cheminLangues .'fr_FR.php';
-        include($fichierLangue);
+        $fichierLangue = (file_exists($this->_cheminLangues . $lang . '.php')) ? $this->_cheminLangues . $lang . '.php' : $this->_cheminLangues . 'fr_FR.php';
+        include ($fichierLangue);
         $this->_aMessages = $aMessages;
     }
 
+    /**
+     * Définit la liste des types MIME autorisés pour les fichiers à traiter.
+     */
     private function _setTypesMimeOk()
     {
         $aExts = (!empty($this->_aExtensionsOk)) ? $this->_aExtensionsOk : null;
@@ -550,10 +672,16 @@ class upload
         }
     }
 
+    /**
+     * Régénère la liste des types-mimes valides
+     *
+     * @param   array   $aTypesOk
+     * @return  array
+     */
     private function _generateUpToDateMimeArray($aTypesOk = null)
     {
         $tm = array();
-        $mimetypes = realpath(__DIR__ . DIRECTORY_SEPARATOR .'inc'. DIRECTORY_SEPARATOR .'mime.types');
+        $mimetypes = realpath(__DIR__ . DIRECTORY_SEPARATOR . 'inc' . DIRECTORY_SEPARATOR . 'mime.types');
         $sListe = '';
         if(false != ($f = fopen($mimetypes, 'r')))
         {
@@ -593,8 +721,7 @@ class upload
             }
         }
         ksort($tm);
-        return($tm);
+        return ($tm);
     }
-
 }
 
