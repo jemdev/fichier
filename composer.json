@@ -1,25 +1,32 @@
 {
-    "name"       : "jemdev/fichier",
-    "description": "Téléchargement de fichiers / File upload management",
-    "type"       : "library",
-    "keywords"   : ["library", "files", "upload", "namespace", "images", "thumbnail"],
-    "homepage"   : "http://jem-dev.com/",
-    "license"    : "CECILL-2.1",
-    "authors"    : [
-        {
-            "name" : "Jean Molliné",
-            "email": "jmolline@jem-dev.com"
-        }
-    ],
-    "support": {
-        "email" : "jmolline@jem-dev.com"
-    },
-    "require": {
-        "php"           : ">=5.4.0"
-    },
-    "autoload": {
-        "psr-4": {
-            "jemdev\\fichier\\": "."
-        }
-    }
+	"name" : "jemdev/fichier",
+	"description" : "Téléchargement de fichiers / File upload management",
+	"version" : "1.0.0",
+	"type" : "library",
+	"keywords" : [
+		"library",
+		"files",
+		"upload",
+		"namespace",
+		"images",
+		"thumbnail"
+	],
+	"homepage" : "http://jem-dev.com/",
+	"license" : "CECILL-2.1",
+	"authors" : [{
+			"name" : "Jean Molliné",
+			"email" : "jmolline@jem-dev.com"
+		}
+	],
+	"support" : {
+		"email" : "jmolline@jem-dev.com"
+	},
+	"require" : {
+		"php" : ">=5.4.0"
+	},
+	"autoload" : {
+		"psr-4" : {
+			"jemdev\\fichier\\" : "."
+		}
+	}
 }
